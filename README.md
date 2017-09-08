@@ -40,3 +40,5 @@ A libp2p-websocket-star address, using the signalling server we provide, looks l
 `/dns4/ws-star-signal-1.servep2p.com/wss/p2p-websocket-star/ipfs/<your-peer-id>`
 
 Note: The address above indicates WebSockets Secure, which can be accessed from both http and https.
+
+LICENSE MIT
