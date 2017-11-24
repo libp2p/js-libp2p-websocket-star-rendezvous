@@ -35,7 +35,7 @@ describe('rendezvous', () => {
       expect(server.info.port).to.equal(13579)
       expect(server.info.protocol).to.equal('http')
       expect(server.info.address).to.equal('0.0.0.0')
-      server.stop(done)
+      server.stop().then(done, done)
     })
   })
 
@@ -49,7 +49,7 @@ describe('rendezvous', () => {
       expect(server.info.port).to.equal(12345)
       expect(server.info.protocol).to.equal('http')
       expect(server.info.address).to.equal('0.0.0.0')
-      server.stop(done)
+      server.stop().then(done, done)
     })
   })
 
@@ -191,6 +191,6 @@ describe('rendezvous', () => {
   it('stop signalling server', (done) => {
     c1.disconnect()
     c2.disconnect()
-    r.stop(done)
+    r.stop().then(done, done)
   })
 })
