@@ -4,6 +4,7 @@ const Hapi = require('hapi')
 const path = require('path')
 const epimetheus = require('epimetheus')
 const merge = require('merge-recursive').recursive
+const Inert = require('inert')
 
 exports = module.exports
 
@@ -19,25 +20,14 @@ exports.start = (options, callback) => {
   const port = options.port || config.hapi.port
   const host = options.host || config.hapi.host
 
-  const http = new Hapi.Server(config.hapi.options)
-
-  http.connection({
+  const http = new Hapi.Server(Object.assign({
     port,
     host
-  })
+  }, config.hapi.options))
 
-  http.register({
-    register: require('inert')
-  }, err => {
-    if (err) {
-      return callback(err)
-    }
-
-    http.start((err) => {
-      if (err) {
-        return callback(err)
-      }
-
+  http.register(Inert)
+    .then(() => http.start(), callback)
+    .then(() => {
       log('rendezvous server has started on: ' + http.info.uri)
 
       http.peers = require('./routes')(config, http).peers
@@ -51,8 +41,7 @@ exports.start = (options, callback) => {
       })
 
       callback(null, http)
-    })
-  })
+    }, callback)
 
   if (config.metrics) epimetheus.instrument(http)
 
