@@ -1,6 +1,7 @@
 'use strict'
 
 const EE = require('events').EventEmitter
+const mh = require('multihashes')
 
 module.exports = class PeerTable extends EE {
   constructor (opt) {
@@ -14,7 +15,7 @@ module.exports = class PeerTable extends EE {
     if (this.rebuildOnNextTimeout) return
     this.rebuildOnNextTimeout = setTimeout(() => {
       this.rebuildOnNextTimeout = false
-      this.discoveryBinary = Object.keys(this.byId).map(id => base58Decode(id))
+      this.discoveryBinary = Object.keys(this.byId).map(id => mh.fromB58String(id))
     }, this.discoveryUpdateInterval)
     this.emit('discoveryUpdated')
   }
