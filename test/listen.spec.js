@@ -1,5 +1,7 @@
 'use strict'
 
+/* eslint-env mocha */
+
 const {createSwarm, serverMa} = require('./utils')
 
 describe('listen', () => {

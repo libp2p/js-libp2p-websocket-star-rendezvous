@@ -3,14 +3,14 @@
 const EE = require('events').EventEmitter
 
 module.exports = class PeerTable extends EE {
-  constructor(opt) {
+  constructor (opt) {
     super()
     Object.assign(this, opt)
     this.byId = {}
     this.discoveryBinary = []
   }
 
-  _updateDiscovery() {
+  _updateDiscovery () {
     if (this.rebuildOnNextTimeout) return
     this.rebuildOnNextTimeout = setTimeout(() => {
       this.rebuildOnNextTimeout = false
@@ -19,11 +19,11 @@ module.exports = class PeerTable extends EE {
     this.emit('discoveryUpdated')
   }
 
-  get(id) {
+  get (id) {
     return this.byId[id]
   }
 
-  add(peer) {
+  add (peer) {
     const id = peer.id.toB58String()
     if (this.byId[id]) throw new TypeError('Tried to override already connected peer ' + id)
     this.byId[id] = peer

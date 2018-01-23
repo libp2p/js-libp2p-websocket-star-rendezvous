@@ -12,7 +12,7 @@ const PeerTable = require('./table')
 const Peer = require('./peer')
 
 module.exports = class SingnallingServer {
-  constructor(opt) {
+  constructor (opt) {
     this.opt = Object.assign(Object.assign({}, defaults), opt || {}) // clone defaults and assign opt's values to it
     Object.assign(this, opt) // laziness ftw
 
@@ -26,7 +26,7 @@ module.exports = class SingnallingServer {
     })
   }
 
-  handle(proto, peer, conn) {
+  handle (proto, peer, conn) {
     log('client connected: %s', peer.id)
     peer = new Peer(proto, peer, conn, this.table)
   }

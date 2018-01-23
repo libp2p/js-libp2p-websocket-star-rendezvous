@@ -49,7 +49,7 @@ const Utils = module.exports = {
         }
       }
 
-      if (attach || attach == undefined) {
+      if (attach || attach == null) {
         modules.discovery.push(star.discovery)
         modules.transport.push(star)
       }
