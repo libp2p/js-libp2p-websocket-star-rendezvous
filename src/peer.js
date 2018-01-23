@@ -2,7 +2,7 @@
 
 const EE = require('events').EventEmitter
 
-const {IdentifyRequest, IdentifyResponse, DiscoveryEvent, DiscoveryACK} = require('./proto') // TODO: move to client
+const {IdentifyRequest, IdentifyResponse, DiscoveryEvent, DiscoveryACK} = require('libp2p-websocket-star/src/proto')
 const lp = require('pull-length-prefixed')
 const Pushable = require('pull-pushable')
 const pull = require('pull-stream')
