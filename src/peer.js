@@ -10,17 +10,17 @@ const pull = require('pull-stream')
 const equal = require('assert').deepEqual
 
 const debug = require('debug')
-const log = debug('signalling-server:peer')
 
 const uuid = require('uuid')
 
 module.exports = class Peer extends EE {
-  constructor (proto, pi, conn, table) {
+  constructor (proto, pi, addrs, conn, table) {
     super()
     Object.assign(this, pi)
-    Object.assign(this, {proto, conn, table})
+    Object.assign(this, {proto, conn, table, addrs})
 
     this.nonce = uuid()
+    this.log = debug('signalling-server:peer#' + this.id.toB58String())
 
     this.source = Pushable()
     this.sink = this.sink.bind(this)
@@ -36,7 +36,7 @@ module.exports = class Peer extends EE {
   }
 
   _disconnect (err) {
-    this.source.abort(err)
+    // this.source.abort(err) // TODO: fix 'TypeError: this.source.abort is not a function'
     this.disconnected = err
     this.emit('disconnect', err)
   }
@@ -53,7 +53,8 @@ module.exports = class Peer extends EE {
       try {
         if (first) {
           first = false
-          const response = this.identifyResponse = IdentifyResponse.decode(data)
+          const response = IdentifyResponse.decode(data)
+          if (this.log.enabled) this.identifyResponse = response // debug
           this.emit('identifyResponse', response)
         } else {
           const ack = DiscoveryACK.decode(data)
@@ -71,6 +72,8 @@ module.exports = class Peer extends EE {
 
       read(null, next)
     }
+
+    read(null, next)
   }
 
   doDiscovery (id) {
@@ -78,22 +81,25 @@ module.exports = class Peer extends EE {
   }
 
   identify (cb) {
-    const {nonce, id} = this
-    this.identifyRequest = IdentifyRequest.encode({nonce})
-    this._push(this.identifyRequest)
+    const {nonce, id, log} = this
+    log('sending identify')
+    const request = IdentifyRequest.encode({nonce})
+    if (log.enabled) this.identifyRequest = request
+    this._push(request)
     this.on('identifyResponse', response => {
       try {
         const otherID = {
           id: response.id,
-          pubkey: response.pubkey
+          pubKey: response.pubKey,
+          privKey: undefined
         }
 
-        equal(id.toJSON(), otherID, 'ID not matching: Possible spoof!')
+        equal(otherID, id.toJSON(), 'ID not matching: Possible spoof!')
 
-        id.pubkey.verify(nonce, response.signature, (err, res) => {
+        id.pubKey.verify(nonce, response.signature, (err, res) => {
           if (!err && !res) err = new Error('Signature invalid!')
           if (err) {
-            log('error during %s/identify: %s', id.toB58String(), err)
+            log('error during identify: %s', err)
             this._disconnect(err)
             return cb(err)
           }
@@ -103,7 +109,7 @@ module.exports = class Peer extends EE {
           this.table.add(this)
         })
       } catch (e) {
-        log('error during %s/identify: %s', id.toB58String(), e)
+        log('error during identify: %s', e)
         this._disconnect(e)
         return cb(e)
       }

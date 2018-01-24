@@ -39,8 +39,11 @@ const Utils = module.exports = {
             SECIO
           ]
         },
-        discovery: [],
-        relay: {
+        discovery: []
+      }
+
+      if (global.TYPE === 'server') {
+        modules.relay = {
           enabled: true,
           hop: {
             enabled: true,
@@ -71,11 +74,11 @@ const Utils = module.exports = {
     parallel(Object.keys(ids).map(id => cb => Id.createFromJSON(ids[id], (err, id_) => err ? cb(err) : cb(null, (ids[id] = id_)))), err => {
       if (err) return cb(err)
       Object.keys(ids).forEach(id => (infos[id] = new Peer(ids[id])))
-      infos.client.multiaddrs.add(serverMa)
+      // infos.client.multiaddrs.add(serverMa) TODO: fix
       infos.server.multiaddrs.add(serverMa.encapsulate('p2p-websocket-star'))
       infos.peer = infos[ownID]
       cb()
     })
   },
-  serverMa
+  serverMa: serverMa.encapsulate('p2p-websocket-star')
 }

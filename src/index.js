@@ -21,13 +21,17 @@ module.exports = class SingnallingServer {
     this.swarm.handle('/ws-star/2.0.0', (proto, conn) => {
       conn.getPeerInfo((err, peer) => {
         if (err) return log(err)
-        this.handle(proto, peer, conn)
+        conn.getObservedAddrs((err, addrs) => {
+          if (err) return log(err)
+          this.handle(proto, peer, addrs, conn)
+        })
       })
     })
   }
 
-  handle (proto, peer, conn) {
-    log('client connected: %s', peer.id)
-    peer = new Peer(proto, peer, conn, this.table)
+  handle (proto, peer, addrs, conn) {
+    log('client connected: %s (addrs: %o)', peer.id.toB58String(), addrs)
+    peer = new Peer(proto, peer, addrs, conn, this.table)
+    peer.identify(log)
   }
 }

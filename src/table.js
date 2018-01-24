@@ -3,6 +3,9 @@
 const EE = require('events').EventEmitter
 const mh = require('multihashes')
 
+const debug = require('debug')
+const log = debug('signalling-server:table')
+
 module.exports = class PeerTable extends EE {
   constructor (opt) {
     super()
@@ -26,10 +29,11 @@ module.exports = class PeerTable extends EE {
 
   add (peer) {
     const id = peer.id.toB58String()
+    log('adding %s', id)
     if (this.byId[id]) throw new TypeError('Tried to override already connected peer ' + id)
     this.byId[id] = peer
     peer.discoveryInterval = setInterval(() => {
-      this.doDiscovery(this.discoveryBinary)
+      peer.doDiscovery(this.discoveryBinary)
     }, this.discoveryInterval)
     peer.once('disconnect', () => {
       delete this.byId[id]
@@ -37,6 +41,6 @@ module.exports = class PeerTable extends EE {
       this._updateDiscovery()
     })
     this._updateDiscovery()
-    this.doDiscovery(this.discoveryBinary)
+    peer.doDiscovery(this.discoveryBinary)
   }
 }
