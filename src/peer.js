@@ -20,7 +20,7 @@ module.exports = class Peer extends EE {
     Object.assign(this, {proto, conn, table, addrs})
 
     this.nonce = uuid()
-    this.log = debug('signalling-server:peer#' + this.id.toB58String())
+    this.log = debug('rendezvous-server:peer#' + this.id.toB58String())
 
     this.source = Pushable()
     this.sink = this.sink.bind(this)
@@ -47,7 +47,7 @@ module.exports = class Peer extends EE {
       if (this.disconnected) return read(this.disconnected)
       if (err) {
         this._disconnect(err)
-        return read(err)
+        return read(true)
       }
       // data is binary protobuf. first packet is IdentifyResponse, after that DiscoveryACK
       try {
@@ -87,6 +87,7 @@ module.exports = class Peer extends EE {
     if (log.enabled) this.identifyRequest = request
     this._push(request)
     this.on('identifyResponse', response => {
+      log('processing response')
       try {
         const otherID = {
           id: response.id,

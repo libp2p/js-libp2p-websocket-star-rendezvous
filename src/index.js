@@ -6,17 +6,19 @@ const defaults = {
 }
 
 const debug = require('debug')
-const log = debug('signalling-server')
+const log = debug('rendezvous-server')
 
 const PeerTable = require('./table')
 const Peer = require('./peer')
 
-module.exports = class SingnallingServer {
+module.exports = class RendezvousServer {
   constructor (opt) {
     this.opt = Object.assign(Object.assign({}, defaults), opt || {}) // clone defaults and assign opt's values to it
     Object.assign(this, opt) // laziness ftw
 
     this.table = new PeerTable(opt)
+
+    this.swarm.signal = this
 
     this.swarm.handle('/ws-star/2.0.0', (proto, conn) => {
       conn.getPeerInfo((err, peer) => {

@@ -16,14 +16,15 @@ const Peer = require('peer-info')
 
 let ids = global.ids = (global.ids || {
   client: require('./idClient'),
+  client1: require('./idClient1'),
   server: require('./idServer')
 })
 let infos = global.infos = (global.infos || {})
 
 const Utils = module.exports = {
-  createSwarm: (cb, attach) => {
+  createSwarm: (cb, attach, id) => {
     const next = () => {
-      const peer = infos.peer
+      const peer = id ? infos['client' + id] : infos.peer
       let star = new WSStar({id: peer.id})
 
       const modules = {
@@ -42,12 +43,22 @@ const Utils = module.exports = {
         discovery: []
       }
 
+      let options = {}
+
       if (global.TYPE === 'server') {
-        modules.relay = {
+        options.relay = {
           enabled: true,
           hop: {
             enabled: true,
             active: true // active relay
+          }
+        }
+      } else {
+        options.relay = {
+          enabled: true,
+          hop: {
+            enabled: true,
+            active: false // passive relay
           }
         }
       }
@@ -57,13 +68,19 @@ const Utils = module.exports = {
         modules.transport.push(star)
       }
 
-      let swarm = new Libp2p(modules, peer)
+      let swarm = new Libp2p(modules, peer, null, options)
 
       star.setSwarm(swarm)
 
       swarm.start(err => {
         if (err) return cb(err)
-        else cb(null, [swarm, star])
+        else if (attach || attach == null) {
+          const l = star.listener = star.createListener()
+          l.listen(Utils.serverMa, err => {
+            if (err) return cb(err)
+            cb(null, [swarm, star])
+          })
+        } else cb(null, [swarm, star])
       })
     }
 
