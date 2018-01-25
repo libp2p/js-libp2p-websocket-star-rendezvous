@@ -22,7 +22,7 @@ module.exports = class Peer extends EE {
     this.nonce = uuid()
     this.log = debug('rendezvous-server:peer#' + this.id.toB58String())
 
-    this.source = Pushable()
+    this.source = Pushable(err => this._disconnect(err))
     this.sink = this.sink.bind(this)
     this._push = this.source.push.bind(this.source)
 

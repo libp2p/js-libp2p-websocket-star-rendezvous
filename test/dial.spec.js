@@ -4,6 +4,8 @@
 
 const chai = require('chai')
 const dirtyChai = require('dirty-chai')
+const pull = require('pull-stream')
+const once = require('once')
 const expect = chai.expect
 chai.use(dirtyChai)
 
@@ -35,10 +37,20 @@ describe('dial', () => {
 
   it('peers can dial each other', done => {
     parallel(swarms.map(swarm => cb => {
-      swarm.star.discovery.on('peer', peer => {
-        swarm.dial(peer, '/ipfs/ping/1.0.0', cb)
+      swarm.star.discovery.once('peer', peer => {
+        swarm.dial(peer, '/ipfs/ping/1.0.0', (err, conn) => {
+          if (err) return cb(err)
+
+          pull(
+            pull.values([]),
+            conn,
+            pull.onEnd(() => {})
+          )
+
+          cb()
+        })
       })
-    }), done)
+    }), once(done))
   })
 
   after(done => parallel(swarms.map(swarm => cb => swarm.stop(cb)), done))

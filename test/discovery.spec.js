@@ -16,7 +16,7 @@ describe('discovery', () => {
 
   it('can discover peers', done => {
     star.listener.once('peers', peers => {
-      expect(peers).to.have.lengthOf(2)
+      expect(peers).to.have.lengthOf(1)
       done()
     })
   })

@@ -12,6 +12,12 @@ module.exports = class PeerTable extends EE {
     Object.assign(this, opt)
     this.byId = {}
     this.discoveryBinary = []
+    this.swarm.once('stop', () => this.stop())
+  }
+
+  stop() {
+    log('stopping all connections')
+    Object.keys(this.byId).forEach(id => this.remove(id))
   }
 
   _updateDiscovery () {
@@ -20,6 +26,7 @@ module.exports = class PeerTable extends EE {
       this.rebuildOnNextTimeout = false
       this.discoveryBinary = Object.keys(this.byId).map(id => mh.fromB58String(id))
     }, this.discoveryUpdateInterval)
+    if (this.rebuildOnNextTimeout.unref) this.rebuildOnNextTimeout.unref()
     this.emit('discoveryUpdated')
   }
 
@@ -44,8 +51,9 @@ module.exports = class PeerTable extends EE {
       peer.doDiscovery(this.discoveryBinary)
     }, this.discoveryInterval)
     peer.once('disconnect', () => {
+      log('disconnect %s', id)
       delete this.byId[id]
-      clearInterval(this.discoveryInterval)
+      clearInterval(peer.discoveryInterval)
       this._updateDiscovery()
     })
     this._updateDiscovery()
