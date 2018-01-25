@@ -1,56 +1,39 @@
 'use strict'
 
-const Hapi = require('hapi')
-const path = require('path')
-const epimetheus = require('epimetheus')
-const merge = require('merge-recursive').recursive
-const defaultConfig = require('./config')
+const defaults = {
+  discoveryInterval: 10000, // 10s
+  discoveryUpdateInterval: 1000 // 1s
+}
 
-exports = module.exports
+const debug = require('debug')
+const log = debug('rendezvous-server')
 
-exports.start = (options, callback) => {
-  if (typeof options === 'function') {
-    callback = options
-    options = {}
-  }
+const PeerTable = require('./table')
+const Peer = require('./peer')
 
-  const config = merge(Object.assign({}, defaultConfig), options)
-  const log = config.log
+module.exports = class RendezvousServer {
+  constructor (opt) {
+    this.opt = Object.assign(Object.assign({}, defaults), opt || {}) // clone defaults and assign opt's values to it
+    Object.assign(this, opt) // laziness ftw
 
-  const port = options.port || config.hapi.port
-  const host = options.host || config.hapi.host
+    this.table = new PeerTable(opt)
 
-  const http = new Hapi.Server(config.hapi.options)
+    this.swarm.signal = this
 
-  http.connection({ port, host })
-
-  http.register({ register: require('inert') }, (err) => {
-    if (err) {
-      return callback(err)
-    }
-
-    http.start((err) => {
-      if (err) {
-        return callback(err)
-      }
-
-      log('rendezvous server has started on: ' + http.info.uri)
-
-      http.peers = require('./routes')(config, http).peers
-
-      http.route({
-        method: 'GET',
-        path: '/',
-        handler: (request, reply) => reply.file(path.join(__dirname, 'index.html'), {
-          confine: false
+    this.swarm.handle('/ws-star/2.0.0', (proto, conn) => {
+      conn.getPeerInfo((err, peer) => {
+        if (err) return log(err)
+        conn.getObservedAddrs((err, addrs) => {
+          if (err) return log(err)
+          this.handle(proto, peer, addrs, conn)
         })
       })
-
-      callback(null, http)
     })
-  })
+  }
 
-  if (config.metrics) { epimetheus.instrument(http) }
-
-  return http
+  handle (proto, peer, addrs, conn) {
+    log('client connected: %s (addrs: %o)', peer.id.toB58String(), addrs)
+    peer = new Peer(proto, peer, addrs, conn, this.table)
+    peer.identify(log)
+  }
 }
