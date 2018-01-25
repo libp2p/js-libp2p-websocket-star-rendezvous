@@ -46,11 +46,13 @@ module.exports = class PeerTable extends EE {
     const id = peer.id.toB58String()
     log('adding %s', id)
     if (this.byId[id]) this.remove(peer)
+    this.emit('connect', id)
     this.byId[id] = peer
     peer.discoveryInterval = setInterval(() => {
       peer.doDiscovery(this.discoveryBinary)
     }, this.discoveryInterval)
     peer.once('disconnect', () => {
+      this.emit('disconnect', id)
       log('disconnect %s', id)
       delete this.byId[id]
       clearInterval(peer.discoveryInterval)
