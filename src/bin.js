@@ -13,6 +13,8 @@ const MULTIPLEX = require('libp2p-multiplex')
 const SPDY = require('libp2p-spdy')
 const SECIO = require('libp2p-secio')
 
+const inDocker = Boolean(process.env.DOCKERMODE)
+
 const path = require('path')
 const fs = require('fs')
 
@@ -26,7 +28,7 @@ const config = {
   host: argv.host || argv.h || process.env.HOST || '0.0.0.0',
   genconf: argv.genconf || argv.g || process.env.GENCONF || false,
   metrics: false, // !(argv.disableMetrics || process.env.DISABLE_METRICS)
-  config: argv.config || argv.c || process.env.CONFIG || path.join(process.cwd(), 'config.json'),
+  config: argv.config || argv.c || process.env.CONFIG || path.join(inDocker ? '/data' : process.cwd(), 'config.json'),
   discoveryInterval: argv.discoveryInterval || argv.di || process.env.DISCOVERY_INTERVAL,
   discoveryUpdateInterval: argv.discoveryUpdateInterval || argv.di || process.env.DISCOVERY_UPDATE_INTERVAL
 }
@@ -53,7 +55,7 @@ console.log('Launching...')
 if (!fs.existsSync(config.config)) die('Config file %s not found', config.config)
 let conf
 try {
-  conf = require(path.resolve(process.cwd(), config.config))
+  conf = require(path.resolve(inDocker ? '/data' : process.cwd(), config.config))
 } catch (e) {
   die('Error loading %s: %s', config.config, e)
 }
