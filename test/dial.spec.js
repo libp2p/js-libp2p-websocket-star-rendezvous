@@ -11,6 +11,7 @@ chai.use(dirtyChai)
 
 const {createSwarm} = require('./utils')
 const {map, parallel} = require('async')
+const noop = once(() => {})
 
 describe('dial', () => {
   let swarms
@@ -44,7 +45,7 @@ describe('dial', () => {
           pull(
             pull.values([]),
             conn,
-            pull.onEnd(() => {})
+            pull.onEnd(noop)
           )
 
           cb()

@@ -15,7 +15,7 @@ module.exports = class PeerTable extends EE {
     this.swarm.once('stop', () => this.stop())
   }
 
-  stop() {
+  stop () {
     log('stopping all connections')
     Object.keys(this.byId).forEach(id => this.remove(id))
   }
