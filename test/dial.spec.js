@@ -39,7 +39,7 @@ describe('dial', () => {
   it('peers can dial each other', done => {
     parallel(swarms.map(swarm => cb => {
       swarm.star.discovery.once('peer', peer => {
-        swarm.dial(peer, '/ipfs/ping/1.0.0', (err, conn) => {
+        swarm.dialProtocol(peer, '/ipfs/ping/1.0.0', (err, conn) => {
           if (err) return cb(err)
 
           pull(
