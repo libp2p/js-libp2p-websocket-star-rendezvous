@@ -53,7 +53,7 @@ console.log('Launching...')
 if (!fs.existsSync(config.config)) die('Config file %s not found', config.config)
 let conf
 try {
-  conf = require(path.resolve(inDocker ? '/data' : process.cwd(), config.config))
+  conf = require(path.resolve(process.cwd(), config.config))
 } catch (e) {
   die('Error loading %s: %s', config.config, e)
 }
