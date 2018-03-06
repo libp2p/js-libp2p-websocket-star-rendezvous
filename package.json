@@ -4,6 +4,7 @@
   "description": "The rendezvous service for libp2p-websocket-star",
   "main": "src/index.js",
   "bin": {
+    "rendezvous": "src/bin.js",
     "websocket-star": "src/bin.js"
   },
   "scripts": {
