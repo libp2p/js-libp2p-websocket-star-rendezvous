@@ -91,6 +91,7 @@ module.exports = (config, http) => {
         log('response cryptoChallenge', multiaddr)
 
         nonces[socket.id][multiaddr].key.verify(nonces[socket.id][multiaddr].nonce, Buffer.from(pub, 'hex'), (err, ok) => {
+          delete nonces[socket.id][multiaddr]
           if (err || !ok) {
             joinsTotal.inc()
             joinsFailureTotal.inc()
