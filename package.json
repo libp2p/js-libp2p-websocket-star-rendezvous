@@ -42,7 +42,7 @@
     "prom-client": "^10.2.2",
     "socket.io": "^2.0.4",
     "socket.io-client": "^2.0.4",
-    "socket.io-pull-stream": "^0.1.4",
+    "socket.io-pull-stream": "^0.1.5",
     "uuid": "^3.2.1"
   },
   "directories": {
