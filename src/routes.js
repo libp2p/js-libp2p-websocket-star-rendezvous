@@ -65,7 +65,7 @@ module.exports = (config, http) => {
   }
 
   // join this signaling server network
-  function join (socket, multiaddr, pub, cb) {
+  async function join (socket, multiaddr, pub, cb) {
     const log = socket.log = config.log.bind(config.log, '[' + socket.id + ']')
 
     if (getConfig().strictMultiaddr && !util.validateMa(multiaddr)) {
@@ -88,36 +88,46 @@ module.exports = (config, http) => {
       if (nonces[socket.id][multiaddr]) {
         log('response cryptoChallenge', multiaddr)
 
-        nonces[socket.id][multiaddr].key.verify(
-          Buffer.from(nonces[socket.id][multiaddr].nonce),
-          Buffer.from(pub, 'hex'),
-          (err, ok) => {
-            if (err || !ok) {
-              joinsTotal.inc()
-              joinsFailureTotal.inc()
-            }
-            if (err) { return cb('Crypto error') } // the errors NEED to be a string otherwise JSON.stringify() turns them into {}
-            if (!ok) { return cb('Signature Invalid') }
+        let ok
+        try {
+          ok = await nonces[socket.id][multiaddr].key.verify(
+            Buffer.from(nonces[socket.id][multiaddr].nonce),
+            Buffer.from(pub, 'hex')
+          )
+        } catch (err) {
+          log('crypto error', err)
+        }
 
-            joinFinalize(socket, multiaddr, cb)
-          })
+        if (!ok) {
+          joinsTotal.inc()
+          joinsFailureTotal.inc()
+        }
+
+        if (ok === undefined) { return cb('Crypto error') } // the errors NEED to be a string otherwise JSON.stringify() turns them into {}
+        if (ok !== true) { return cb('Signature Invalid') }
+
+        joinFinalize(socket, multiaddr, cb)
       } else {
         joinsTotal.inc()
         const addr = multiaddr.split('ipfs/').pop()
 
         log('do cryptoChallenge', multiaddr, addr)
 
-        util.getIdAndValidate(pub, addr, (err, key) => {
-          if (err) { joinsFailureTotal.inc(); return cb(err) }
-          const nonce = uuid() + uuid()
+        let key
+        try {
+          key = await util.getIdAndValidate(pub, addr)
+        } catch (err) {
+          joinsFailureTotal.inc()
+          return cb(err)
+        }
 
-          socket.once('disconnect', () => {
-            delete nonces[socket.id]
-          })
-
-          nonces[socket.id][multiaddr] = { nonce: nonce, key: key }
-          cb(null, nonce)
+        const nonce = uuid() + uuid()
+        socket.once('disconnect', () => {
+          delete nonces[socket.id]
         })
+
+        nonces[socket.id][multiaddr] = { nonce: nonce, key: key }
+        cb(null, nonce)
       }
     } else {
       joinsTotal.inc()

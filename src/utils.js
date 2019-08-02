@@ -81,7 +81,7 @@ function Protocol (log) {
   }
   this.handleSocket = (socket) => {
     socket.r = {}
-    for (let request in this.requests) {
+    for (const request in this.requests) {
       if (Object.prototype.hasOwnProperty.call(this.requests, request)) {
         const r = this.requests[request]
         socket.on(request, function () {
@@ -100,15 +100,13 @@ function Protocol (log) {
   }
 }
 
-function getIdAndValidate (pub, id, cb) {
-  Id.createFromPubKey(Buffer.from(pub, 'hex'))
-    .then(_id => {
-      if (_id.toB58String() !== id) {
-        throw Error('Id is not matching')
-      }
+async function getIdAndValidate (pub, id) {
+  const _id = await Id.createFromPubKey(Buffer.from(pub, 'hex'))
+  if (_id.toB58String() !== id) {
+    throw Error('Id is not matching')
+  }
 
-      return crypto.keys.unmarshalPublicKey(Buffer.from(pub, 'hex'))
-    }, cb)
+  return crypto.keys.unmarshalPublicKey(Buffer.from(pub, 'hex'))
 }
 
 exports = module.exports
