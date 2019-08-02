@@ -1,3 +1,13 @@
+<a name="0.4.1"></a>
+## [0.4.1](https://github.com/libp2p/js-libp2p-websocket-star-rendezvous/compare/v0.4.0...v0.4.1) (2019-08-02)
+
+
+### Bug Fixes
+
+* crypto challenge stall due to callback usage of async/await ([#37](https://github.com/libp2p/js-libp2p-websocket-star-rendezvous/issues/37)) ([2647595](https://github.com/libp2p/js-libp2p-websocket-star-rendezvous/commit/2647595))
+
+
+
 <a name="0.4.0"></a>
 # [0.4.0](https://github.com/libp2p/js-libp2p-websocket-star-rendezvous/compare/v0.3.0...v0.4.0) (2019-07-19)
 
