@@ -23,7 +23,7 @@ exports.start = async (options = {}) => {
       cert: readFileSync(options.cert),
       passphrase: options.passphrase
     }
-  } else if (options.pfx && options.passphrase) {
+  } else if (options.pfx) {
     tls = {
       pfx: readFileSync(options.pfx),
       passphrase: options.passphrase
