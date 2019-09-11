@@ -6,6 +6,7 @@ stages:
   - cov
 
 node_js:
+  - '12'
   - '10'
 
 os:
@@ -20,7 +21,6 @@ jobs:
   include:
     - stage: check
       script:
-        - npx aegir commitlint --travis
         - npx aegir dep-check -- -i wrtc -i electron-webrtc
         - npm run lint
 
